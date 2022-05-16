@@ -8,7 +8,6 @@ with open("Covid-19 Pandemic Timeline Fast Facts - CNN.html") as fp:
 times = soup.find_all("strong")
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 convertedTimes = []
-dateRanges = []
 for time in times:
     time = time.text
     time = time.split()
@@ -27,12 +26,8 @@ for time in times:
         dateStamp = yearNum + '-' + monthNum + '-' + dayNum + ' ' + '00-00-00'
         pd.to_datetime(dateStamp)
         convertedTimes.append(dateStamp)
-        if len(convertedTimes) > 0:
-            #prev date stamp: next date stamp
-            dateRanges.append({convertedTimes[len(convertedTimes)-2]: convertedTimes[len(convertedTimes)-1]})
 convertedTimes = list(set(convertedTimes)) #remove duplicates
 convertedTimes = sorted(convertedTimes)
-dateRanges.pop(0)
 
 #sources
 #https://towardsdatascience.com/%EF%B8%8F-load-the-same-csv-file-10x-times-faster-and-with-10x-less-memory-%EF%B8%8F-e93b485086c7
@@ -48,7 +43,7 @@ chunk_list = []
 req_cols = ['tweet_timestamp', 'keyword',
        'valence_intensity', 'fear_intensity', 'anger_intensity',
        'happiness_intensity', 'sadness_intensity', 'sentiment', 'emotion']
-tp = pd.read_csv("smaller_data", chunksize=10,\
+tp = pd.read_csv("smaller_data", chunksize=50000,\
                  dtype = {'valence_intensity': 'float16', 'fear_intensity': 'float16', \
                           'anger_intensity': 'float16', 'happiness_intensity': 'float16', 'sadness_intensity': 'float16'},\
                  usecols=req_cols) #remove tweet and user id
@@ -58,13 +53,23 @@ for chunk in tp:
     chunk_filtered = chunk_filtered.reset_index()
     start_times = []
     for index,row in chunk_filtered.iterrows():
-        for index in range(len(convertedTimes)-1):
-            start_date = convertedTimes[index]
-            end_date = convertedTimes[index + 1]
-            if start_date <= row['tweet_timestamp'] < end_date:
-                start_times.append(start_date)
+        for date in convertedTimes:
+            start_date = date
+            endIdx = convertedTimes.index(date) + 1
+            if endIdx < len(convertedTimes): #correct?
+                end_date = convertedTimes[endIdx]
+                if start_date <= row['tweet_timestamp'] < end_date:
+                    start_times.append(start_date)
+                    del convertedTimes[0:(endIdx - 1)]
+
+
+        # old code with out deleting unnecessary first part of converted times
+        # for index in range(len(convertedTimes)-1):
+        #     start_date = convertedTimes[index]
+        #     end_date = convertedTimes[index + 1]
+        #     if start_date <= row['tweet_timestamp'] < end_date:
+        #         start_times.append(start_date)
     chunk_filtered['start times'] = start_times
-    print(chunk_filtered)
     chunk_list.append(chunk_filtered)
 df = pd.concat(chunk_list, ignore_index=True)
 
