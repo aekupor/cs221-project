@@ -30,6 +30,8 @@ for time in times:
         if len(convertedTimes) > 0:
             #prev date stamp: next date stamp
             dateRanges.append({convertedTimes[len(convertedTimes)-2]: convertedTimes[len(convertedTimes)-1]})
+convertedTimes = list(set(convertedTimes)) #remove duplicates
+convertedTimes = sorted(convertedTimes)
 dateRanges.pop(0)
 
 #sources
@@ -46,7 +48,7 @@ chunk_list = []
 req_cols = ['tweet_timestamp', 'keyword',
        'valence_intensity', 'fear_intensity', 'anger_intensity',
        'happiness_intensity', 'sadness_intensity', 'sentiment', 'emotion']
-tp = pd.read_csv("tweetid_userid_keyword_sentiments_emotions_United States.csv", chunksize=10,\
+tp = pd.read_csv("smaller_data", chunksize=10,\
                  dtype = {'valence_intensity': 'float16', 'fear_intensity': 'float16', \
                           'anger_intensity': 'float16', 'happiness_intensity': 'float16', 'sadness_intensity': 'float16'},\
                  usecols=req_cols) #remove tweet and user id
@@ -56,24 +58,13 @@ for chunk in tp:
     chunk_filtered = chunk_filtered.reset_index()
     start_times = []
     for index,row in chunk_filtered.iterrows():
-        found = False
-       # print('row', row['tweet_timestamp'])
-        for dateRange in dateRanges:
-            key = list(dateRange.keys())[0]
-            #print(key, row['tweet_timestamp'], dateRange[key])
-            if key <= row['tweet_timestamp'] < dateRange[key]:
-                found = True #for debugging
-                start_times.append(key)
-             #   print('apeend', len(start_times))
-            elif key < row['tweet_timestamp']: #we won't need this anymore because our data is sequential on time
-                dateRanges.remove(dateRange)
-        if(found == False): #for debugging
-          #  print(len(start_times)) #for debugging
-            #start_times.append(start_times[-1])
-
-    #print(start_times) #for debegging
-   # chunk_filtered['start times'] = start_times
+        for index in range(len(convertedTimes)-1):
+            start_date = convertedTimes[index]
+            end_date = convertedTimes[index + 1]
+            if start_date <= row['tweet_timestamp'] < end_date:
+                start_times.append(start_date)
+    chunk_filtered['start times'] = start_times
+    print(chunk_filtered)
     chunk_list.append(chunk_filtered)
-    #print(chunk_filtered)
 df = pd.concat(chunk_list, ignore_index=True)
 
