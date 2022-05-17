@@ -48,7 +48,7 @@ chunk_list = []
 req_cols = ['tweet_timestamp', 'keyword',
        'valence_intensity', 'fear_intensity', 'anger_intensity',
        'happiness_intensity', 'sadness_intensity', 'sentiment', 'emotion']
-tp = pd.read_csv("small_dataset.csv", chunksize=10,\
+tp = pd.read_csv("small_dataset.csv", chunksize=50000,\
                  dtype = {'valence_intensity': 'float16', 'fear_intensity': 'float16', \
                           'anger_intensity': 'float16', 'happiness_intensity': 'float16', 'sadness_intensity': 'float16'},\
                  usecols=req_cols) #remove tweet and user id
