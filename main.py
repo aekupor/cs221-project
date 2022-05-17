@@ -1,11 +1,13 @@
 import itertools
-
+import time
+start_time = time.time()
 import numpy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt #incase you guys want to do graphs in python
 from bs4 import BeautifulSoup
 pd.options.mode.chained_assignment = None  # default='warn'
+from tqdm import tqdm
 
 #Scrape webpage for event times
 with open("Covid-19 Pandemic Timeline Fast Facts - CNN.html") as fp:
@@ -48,13 +50,13 @@ chunk_list = []
 req_cols = ['tweet_timestamp', 'keyword',
        'valence_intensity', 'fear_intensity', 'anger_intensity',
        'happiness_intensity', 'sadness_intensity', 'sentiment', 'emotion']
-tp = pd.read_csv("small_dataset.csv", chunksize=50000,\
+tp = pd.read_csv("tweetid_userid_keyword_sentiments_emotions_United States.csv", chunksize=50000,\
                  dtype = {'valence_intensity': 'float16', 'fear_intensity': 'float16', \
                           'anger_intensity': 'float16', 'happiness_intensity': 'float16', 'sadness_intensity': 'float16'},\
                  usecols=req_cols) #remove tweet and user id
 start_idx = -1
 end_idx = 0
-for chunk in tp:
+for chunk in tqdm(tp):
     chunk_filtered = chunk[chunk.emotion.ne('no specific emotion')] #remove neutral data
     chunk_filtered['tweet_timestamp'] = chunk_filtered['tweet_timestamp'].str.split().str[0] #remove time and just leave date
     convertedTimes = np.array(convertedTimes)
@@ -79,59 +81,3 @@ for chunk in tp:
     chunk_filtered['start times'] = start_times
     chunk_list.append(chunk_filtered)
 df = pd.concat(chunk_list, ignore_index=True)
-#print(df)
-
-
-
-# date_arr = numpy.datetime64(date_arr)
-    # pd.to_datetime(chunk_filtered['tweet_timestamp'])
-    # curr_idx = 0 #index of current time start time
-    # next_idx = 1 #index of end time in converted times
-    # starttimes = []
-    # for index, row in chunk_filtered.iterrows():
-    #     timeStamp = row["tweet_timestamp"]
-    #    # startTime = convertedTimes[curr_idx]
-    #     #endTime = convertedTimes[next_idx]
-    #     while timeStamp <= convertedTimes[curr_idx]:
-    #         print('hi')
-    #         if convertedTimes[next_idx] < timeStamp:
-    #             curr_idx = next_idx
-    #             next_idx = next_idx + 1
-    #         elif convertedTimes[curr_idx] <= timeStamp < convertedTimes[next_idx]:
-    #             starttimes.append(convertedTimes[curr_idx])
-    # filtered_times = chunk_filtered['tweet_timestamp'].to_numpy()
-    # np.datetime64(filtered_times)
-    # print(filtered_times)
-    #for row in chunk_filtered:
-
-
-    # for index, date in enumerate(convertedTimes):
-    #     start
-    #     if
-# for chunk in tp:
-#     chunk_filtered = chunk[chunk.emotion.ne('no specific emotion')] #remove neutral data
-#     pd.to_datetime(chunk_filtered['tweet_timestamp'])
-#     chunk_filtered = chunk_filtered.reset_index()
-#     start_times = []
-#     for index,row in chunk_filtered.iterrows():
-#         for date in convertedTimes:
-#             start_date = date
-#             endIdx = convertedTimes.index(date) + 1
-#             if endIdx < len(convertedTimes): #correct?
-#                 end_date = convertedTimes[endIdx]
-#                 if start_date <= row['tweet_timestamp'] < end_date:
-#                     start_times.append(start_date)
-#                     del convertedTimes[0:(endIdx - 1)]
-#                     break
-
-
-        # old code with out deleting unnecessary first part of converted times
-        # for index in range(len(convertedTimes)-1):
-        #     start_date = convertedTimes[index]
-        #     end_date = convertedTimes[index + 1]
-        #     if start_date <= row['tweet_timestamp'] < end_date:
-        #         start_times.append(start_date)
-#     chunk_filtered['start times'] = starttimes
-#     chunk_list.append(chunk_filtered)
-# df = pd.concat(chunk_list, ignore_index=True)
-#
