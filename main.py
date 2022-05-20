@@ -4,12 +4,17 @@ start_time = time.time()
 import numpy
 import numpy as np
 import pandas as pd
+import sklearn.linear_model
 import matplotlib.pyplot as plt #incase you guys want to do graphs in python
 from bs4 import BeautifulSoup
 pd.options.mode.chained_assignment = None  # default='warn'
 from tqdm import tqdm
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
-#Scrape webpage for event times
+
+# SCRAPE WEBPAGE FOR EVENT TIMES
 with open("Covid-19 Pandemic Timeline Fast Facts - CNN.html") as fp:
     soup = BeautifulSoup(fp, "html.parser")
 times = soup.find_all("strong")
@@ -56,6 +61,8 @@ tp = pd.read_csv("tweetid_userid_keyword_sentiments_emotions_United States.csv",
                  usecols=req_cols) #remove tweet and user id
 start_idx = -1
 end_idx = 0
+
+# READ IN DATA WITH START TIMES
 for chunk in tqdm(tp):
     chunk_filtered = chunk[chunk.emotion.ne('no specific emotion')] #remove neutral data
     chunk_filtered['tweet_timestamp'] = chunk_filtered['tweet_timestamp'].str.split().str[0] #remove time and just leave date
@@ -81,3 +88,54 @@ for chunk in tqdm(tp):
     chunk_filtered['start times'] = start_times
     chunk_list.append(chunk_filtered)
 df = pd.concat(chunk_list, ignore_index=True)
+
+# GRAPHS OF DATA
+means = df.groupby(['start times'])['fear_intensity'].mean() #fear over time
+means.plot(x='start times', y='fear_intensity', kind = 'line', color= 'red', title="fear_intensity")
+plt.show()
+
+means = df.groupby(['start times'])['valence_intensity'].mean() #valence over time
+means.plot(x='start times', y='valence_intensity', kind = 'line', color= 'red', title="valence_intensity")
+plt.show()
+
+means = df.groupby(['start times'])['anger_intensity'].mean() #anger over time
+means.plot(x='start times', y='anger_intensity', kind = 'line', color= 'red', title="anger_intensity")
+plt.show()
+
+means = df.groupby(['start times'])['happiness_intensity'].mean() #happiness over time
+means.plot(x='start times', y='happiness_intensity', kind = 'line', color= 'red', title="happiness_intensity")
+plt.show()
+
+means = df.groupby(['start times'])['sadness_intensity'].mean() #sadness over time
+means.plot(x='start times', y='sadness_intensity', kind = 'line', color= 'red', title="sadness_intensity")
+plt.show()
+
+# LINEAR REGRESSION
+
+# convert dates into floats of days past first date
+df['date'] = pd.to_datetime(df['start times'])
+df['date_delta'] = (df['date'] - df['date'].min()) / np.timedelta64(1,'D')
+
+# separate the other attributes that we don't want
+x = df.drop(['start times', 'date', 'tweet_timestamp', 'keyword', 'emotion', 'sentiment', 'date_delta'], axis=1)
+# print(x) # uncomment this line to visualize data
+#separte the predicting attribute into Y for model training
+y = df['date_delta']
+
+# split data into train and test
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 42)
+LR = LinearRegression()
+
+# fitting the training data
+LR.fit(x_train,y_train)
+y_prediction =  LR.predict(x_test)
+
+# print prediction and coeffiencts
+print(y_prediction)
+print(LR.coef_)
+
+#print our prediction vs actual
+print("MATMUL")
+print(np.matmul(x_test, LR.coef_))
+print("YTEST")
+print(y_test)
