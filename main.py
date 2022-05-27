@@ -87,6 +87,7 @@ for chunk in tqdm(tp):
     valid_dates = np.array([], dtype="datetime64") #tweets with time stamp that falls in the range
     start_times = []
     start_times_notable = []
+    idx_not_arr = []
     #work to label data with normal/general start time
     while len(start_times) < date_arr.size:
         valid_dates = np.array([], dtype="datetime64")  # tweets with time stamp that falls in the range
@@ -107,6 +108,7 @@ for chunk in tqdm(tp):
         early_dates_notable = np.array([], dtype="datetime64")
         mask_notable = (date_arr >= date_notable[start_idx_not]) & (date_arr < date_notable[end_idx_not])
         start_times_notable = [] #NO IDEA WHY THIS IS NECESSARY
+        idx_not_arr = []
         if date_arr[mask_notable].size > 0:
             valid_dates_notable = np.concatenate((valid_dates_notable, date_arr[mask_notable]))
         bigger_mask_not = (date_arr >= date_notable[end_idx_not])
@@ -120,12 +122,15 @@ for chunk in tqdm(tp):
             early = None
             for i in range(early_dates_notable.size):
                 start_times_notable.append(early)
+                idx_not_arr.append(early)
         if valid_dates_notable.size > 0:
             start_time_not = date_notable[start_idx_not]
             for i in range(valid_dates_notable.size):
                 start_times_notable.append(start_time_not)
+                idx_not_arr.append(start_idx_not)
     chunk['start times'] = start_times
     chunk['start notable'] = start_times_notable
+    chunk[' idx notable'] = idx_not_arr
     #convert notable start times to a numpy date time array
     start_times_notable = np.array(start_times_notable)
     start_times_notable = start_times_notable.astype('datetime64')
@@ -133,59 +138,59 @@ for chunk in tqdm(tp):
     chunk_list.append(chunk)
 df = pd.concat(chunk_list, ignore_index=True)
 print(df)
-
-# GRAPHS OF DATA
-ax = plt.axes()
-means = df.groupby(['start times'])['fear_intensity'].mean() #fear over time
-means.plot(x='start times', y='fear_intensity', kind = 'line', color= 'red', title="fear_intensity")
-# setting ticks for x-axis
-#ax.set_xticks(tempTimes)
-plt.show()
-
-ax = plt.axes()
-means = df.groupby(['start times'])['valence_intensity'].mean() #valence over time
-means.plot(x='start times', y='valence_intensity', kind = 'line', color= 'red', title="valence_intensity")
-#ax.set_xticks(tempTimes)
-plt.show()
-
-means = df.groupby(['start times'])['anger_intensity'].mean() #anger over time
-means.plot(x='start times', y='anger_intensity', kind = 'line', color= 'red', title="anger_intensity")
-plt.show()
-
-means = df.groupby(['start times'])['happiness_intensity'].mean() #happiness over time
-means.plot(x='start times', y='happiness_intensity', kind = 'line', color= 'red', title="happiness_intensity")
-plt.show()
-
-means = df.groupby(['start times'])['sadness_intensity'].mean() #sadness over time
-means.plot(x='start times', y='sadness_intensity', kind = 'line', color= 'red', title="sadness_intensity")
-plt.show()
-
-# LINEAR REGRESSION
-
-# convert dates into floats of days past first date
-df['date'] = pd.to_datetime(df['start times'])
-df['date_delta'] = (df['date'] - df['date'].min()) / np.timedelta64(1,'D')
-
-# separate the other attributes that we don't want
-x = df.drop(['start times', 'date', 'tweet_timestamp', 'keyword', 'emotion', 'sentiment', 'date_delta'], axis=1)
-# print(x) # uncomment this line to visualize data
-#separte the predicting attribute into Y for model training
-y = df['date_delta']
-
-# split data into train and test
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 42)
-LR = LinearRegression()
-
-# fitting the training data
-LR.fit(x_train,y_train)
-y_prediction =  LR.predict(x_test)
-
-# print prediction and coeffiencts
-print(y_prediction)
-print(LR.coef_)
-
-#print our prediction vs actual
-print("MATMUL")
-print(np.matmul(x_test, LR.coef_))
-print("YTEST")
-print(y_test)
+#
+# # GRAPHS OF DATA
+# ax = plt.axes()
+# means = df.groupby(['start times'])['fear_intensity'].mean() #fear over time
+# means.plot(x='start times', y='fear_intensity', kind = 'line', color= 'red', title="fear_intensity")
+# # setting ticks for x-axis
+# #ax.set_xticks(tempTimes)
+# plt.show()
+#
+# ax = plt.axes()
+# means = df.groupby(['start times'])['valence_intensity'].mean() #valence over time
+# means.plot(x='start times', y='valence_intensity', kind = 'line', color= 'red', title="valence_intensity")
+# #ax.set_xticks(tempTimes)
+# plt.show()
+#
+# means = df.groupby(['start times'])['anger_intensity'].mean() #anger over time
+# means.plot(x='start times', y='anger_intensity', kind = 'line', color= 'red', title="anger_intensity")
+# plt.show()
+#
+# means = df.groupby(['start times'])['happiness_intensity'].mean() #happiness over time
+# means.plot(x='start times', y='happiness_intensity', kind = 'line', color= 'red', title="happiness_intensity")
+# plt.show()
+#
+# means = df.groupby(['start times'])['sadness_intensity'].mean() #sadness over time
+# means.plot(x='start times', y='sadness_intensity', kind = 'line', color= 'red', title="sadness_intensity")
+# plt.show()
+#
+# # LINEAR REGRESSION
+#
+# # convert dates into floats of days past first date
+# df['date'] = pd.to_datetime(df['start times'])
+# df['date_delta'] = (df['date'] - df['date'].min()) / np.timedelta64(1,'D')
+#
+# # separate the other attributes that we don't want
+# x = df.drop(['start times', 'date', 'tweet_timestamp', 'keyword', 'emotion', 'sentiment', 'date_delta'], axis=1)
+# # print(x) # uncomment this line to visualize data
+# #separte the predicting attribute into Y for model training
+# y = df['date_delta']
+#
+# # split data into train and test
+# x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 42)
+# LR = LinearRegression()
+#
+# # fitting the training data
+# LR.fit(x_train,y_train)
+# y_prediction =  LR.predict(x_test)
+#
+# # print prediction and coeffiencts
+# print(y_prediction)
+# print(LR.coef_)
+#
+# #print our prediction vs actual
+# print("MATMUL")
+# print(np.matmul(x_test, LR.coef_))
+# print("YTEST")
+# print(y_test)
