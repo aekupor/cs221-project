@@ -44,9 +44,12 @@ def print_graphs():
     # plt.show()
     #
 
-def linear_regression(df):
+def linear_regression(df, needToDrop = True):
     # separate the other attributes that we don't want
-    x = df.drop(['start times', 'tweet_timestamp', 'days since', 'start notable', ' idx notable'], axis=1)
+    if needToDrop:
+        x = df.drop(['start times', 'tweet_timestamp', 'days since', 'start notable', ' idx notable'], axis=1)
+    else:
+        x = df.drop([' idx notable'], axis=1)
     #print(x) # uncomment this line to visualize data
     # separte the predicting attribute into Y for model training
     y = df[' idx notable']
@@ -70,9 +73,9 @@ def linear_regression(df):
     print(y_test)
 
     print("ACCURACY")
-    y_pred_floor = [round(float(x)) for x in y_prediction]
-
-    print(accuracy_score(y_test, y_pred_floor))
+    y_pred_rounded = [round(float(x)) for x in y_prediction]
+    y_test_rounded = [round(float(x)) for x in y_test]
+    print(accuracy_score(y_test_rounded, y_pred_rounded))
 
 
 def main():
@@ -80,14 +83,17 @@ def main():
     df = pd.read_pickle('data_pickle.pkl')
 
     # LINEAR REGRESSION
-    df = df.dropna()
-    print("REGULAR")
-    linear_regression(df)
 
-    df_grouped = df.copy()
-    df_grouped = df_grouped.groupby(np.arange(len(df))//20).mean()
+    df = df.dropna()
+    df_grouped = df
+
+    print("REGULAR")
+   # linear_regression(df) # uncomment if you want to run without grouping
+
+    df_grouped = df_grouped.groupby(np.arange(len(df_grouped))//20).mean()
+    print(df_grouped)
     print("GROUPED")
-    linear_regression(df_grouped)
+    linear_regression(df_grouped, needToDrop = False)
 
     # GRAPHS
     print_graphs()
