@@ -1,3 +1,5 @@
 .DS_Store
 .idea/*
 tweetid_userid_keyword_sentiments_emotions_United States.csv
+.tweetid_userid_keyword_sentiments_emotions_United States.csv.icloud
+data_pickle.pkl
