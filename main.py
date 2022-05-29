@@ -63,14 +63,14 @@ def linear_regression(df, needToDrop = True):
     y_prediction =  LR.predict(x_test)
 
     # print prediction and coeffiencts
-    print(y_prediction)
-    print(LR.coef_)
+    # print(y_prediction)
+    # print(LR.coef_)
 
     #print our prediction vs actual
-    print("MATMUL")
-    print(np.matmul(x_test, LR.coef_))
-    print("YTEST")
-    print(y_test)
+    # print("MATMUL")
+    # print(np.matmul(x_test, LR.coef_))
+    # print("YTEST")
+    # print(y_test)
 
     print("ACCURACY")
     y_pred_rounded = [round(float(x)) for x in y_prediction]
@@ -85,12 +85,13 @@ def main():
     # LINEAR REGRESSION
 
     df = df.dropna()
+    df = df[df['days since'] <= pd.Timedelta(3,'D')]
     df_grouped = df
 
     print("REGULAR")
-   # linear_regression(df) # uncomment if you want to run without grouping
+    # linear_regression(df) # uncomment if you want to run without grouping
 
-    df_grouped = df_grouped.groupby(np.arange(len(df_grouped))//20).mean()
+    df_grouped = df_grouped.groupby(np.arange(len(df_grouped))//10000).mean()
     print(df_grouped)
     print("GROUPED")
     linear_regression(df_grouped, needToDrop = False)
