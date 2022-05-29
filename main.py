@@ -80,12 +80,14 @@ def linear_regression(df, needToDrop = True):
 
 def main():
     # READ IN DATA
-    df = pd.read_pickle('data_pickle.pkl')
+    # df = pd.read_pickle('data_pickle.pkl') # first set of dates
+    df = pd.read_pickle('data_pickle_2.pkl')
 
     # LINEAR REGRESSION
 
     df = df.dropna()
-    df = df[df['days since'] <= pd.Timedelta(3,'D')]
+    # Riya Note: use 3 for first dataset in number of days
+    df = df[df['days since'] <= pd.Timedelta(1,'D')]
     df_grouped = df
 
     print("REGULAR")
