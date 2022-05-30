@@ -13,6 +13,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
 
 def print_graphs():
     pass
@@ -76,6 +78,11 @@ def linear_regression(df, needToDrop = True):
     y_pred_rounded = [round(float(x)) for x in y_prediction]
     y_test_rounded = [round(float(x)) for x in y_test]
     print(accuracy_score(y_test_rounded, y_pred_rounded))
+    # print(y_test_rounded)
+    print("PRECISION")
+    print(precision_score(y_test_rounded, y_pred_rounded,  average = 'micro'))
+    print("FI Score")
+    print(f1_score(y_test_rounded, y_pred_rounded, average = 'micro'))
 
 
 def main():
@@ -87,14 +94,15 @@ def main():
 
     df = df.dropna()
     # Riya Note: use 3 for first dataset in number of days
-    df = df[df['days since'] <= pd.Timedelta(1,'D')]
+    # EMILY CHANGE HERE: 0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5
+    df = df[df['days since'] <= pd.Timedelta(2,'D')]
     df_grouped = df
 
     print("REGULAR")
     # linear_regression(df) # uncomment if you want to run without grouping
-
+    # EMILY CHANGE HERE: 5, 10, 50, 100, 10000, 5000, 100000
     df_grouped = df_grouped.groupby(np.arange(len(df_grouped))//10000).mean()
-    print(df_grouped)
+    # print(df_grouped)
     print("GROUPED")
     linear_regression(df_grouped, needToDrop = False)
 
